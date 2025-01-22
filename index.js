@@ -3,6 +3,11 @@ const app = express()
 
 app.use(express.json())
 
+const morgan = require('morgan')
+morgan.token('type', function (req, res) { return req.headers['content-type'] })
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :type'))
+
 let persons = [
     {
         id: "1",
