@@ -55,7 +55,7 @@ const generateId = () => {
     const minCeiled = Math.ceil(1)
     const maxFloored = Math.floor(1000)
     const newId = Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled)
-    return newId
+    return String(newId)
   }
 
 app.post('/api/persons', (request, response) => {
