@@ -36,16 +36,16 @@ const unknownEndpoint = (request, response) => {
 }
 
 const morgan = require('morgan')
-morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('data', function (req) { return JSON.stringify(req.body) })
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
 app.get('/info', (request, response) => {
-    const today = Date()
-    Person.find({}).then(persons => {
-      response.send(`<p>Phonebook has info for ${persons.length} people</p>
+  const today = Date()
+  Person.find({}).then(persons => {
+    response.send(`<p>Phonebook has info for ${persons.length} people</p>
         <p>${today}</p>`)
-    })
+  })
 })
 
 app.get('/api/persons', (request, response) => {
@@ -64,7 +64,7 @@ app.get('/api/persons/:id', (request, response, next) => {
       }
     })
     .catch(error => next(error))
-  })
+})
 
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
@@ -77,31 +77,31 @@ app.post('/api/persons', (request, response, next) => {
   person.save()
     .then(savedPerson => {
       response.json(savedPerson)
-  })
-  .catch(error => next(error))
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
-    Person.findByIdAndDelete(request.params.id)
-      .then(result => {
-        response.status(204).end()
-      })
-      .catch(error => next(error))
-  })
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+})
 
 app.put('/api/persons/:id', (request, response, next) => {
-    const { name, number } = request.body
-  
-    Person.findByIdAndUpdate(
-      request.params.id,
-      { name, number },
-      { new: true, runValidators: true, context: 'query' }
-    )
-      .then(updatedPerson => {
-        response.json(updatedPerson)
-      })
-      .catch(error => next(error))
-  })
+  const { name, number } = request.body
+
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
 
 app.use(unknownEndpoint)
 app.use(errorHandler)

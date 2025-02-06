@@ -28,18 +28,18 @@ const person = new Person({
 })
 
 if (process.argv.length === 3) {
-    Person.find({}).then(result => {
-        console.log("phonebook:")
-        result.forEach(person => {
-          console.log(person.name.concat(" ",person.number))
-        })
-        mongoose.connection.close()
-      })
+  Person.find({}).then(result => {
+    console.log('phonebook:')
+    result.forEach(person => {
+      console.log(person.name.concat(' ',person.number))
+    })
+    mongoose.connection.close()
+  })
 }
 
 if (name !== undefined && number !== undefined) {
-    person.save().then(result => {
-        console.log(`added ${name} number ${number} to phonebook`)
-        mongoose.connection.close()
-      })
+  person.save().then(() => {
+    console.log(`added ${name} number ${number} to phonebook`)
+    mongoose.connection.close()
+  })
 }
