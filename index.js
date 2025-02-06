@@ -34,13 +34,6 @@ app.get('/api/persons/:id', (request, response) => {
   })
   })
 
-const generateId = () => {
-    const minCeiled = Math.ceil(1)
-    const maxFloored = Math.floor(1000)
-    const newId = Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled)
-    return String(newId)
-  }
-
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
@@ -62,11 +55,12 @@ app.post('/api/persons', (request, response) => {
   })
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
   })
 
 const PORT = process.env.PORT || 3001
