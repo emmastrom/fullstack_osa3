@@ -2,24 +2,48 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const Person = require('./models/person')
+app.use(express.static('dist'))
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+
 const cors = require('cors')
 
-app.use(express.json())
-app.use(express.static('dist'))
 app.use(cors())
+app.use(express.json())
+app.use(requestLogger)
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
 const morgan = require('morgan')
 morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
-let persons = [
-]
-
 app.get('/info', (request, response) => {
     const today = Date()
-  response.send(`<p>Phonebook has info for ${persons.length} people</p>
-    <p>${today}</p>`)
+    Person.find({}).then(persons => {
+      response.send(`<p>Phonebook has info for ${persons.length} people</p>
+        <p>${today}</p>`)
+    })
 })
 
 app.get('/api/persons', (request, response) => {
@@ -28,20 +52,26 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  Person.findById(request.params.id).then(person => {
-    response.json(person)
-  })
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
   })
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (body.name === undefined) {
+  if (!body.name) {
     return response.status(400).json({ error: 'name missing' })
   }
 
-  if (body.number === undefined) {
+  if (!body.number) {
     return response.status(400).json({ error: 'number missing' })
   }
 
@@ -62,6 +92,10 @@ app.delete('/api/persons/:id', (request, response, next) => {
       })
       .catch(error => next(error))
   })
+
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
