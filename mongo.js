@@ -29,8 +29,9 @@ const person = new Person({
 
 if (process.argv.length === 3) {
     Person.find({}).then(result => {
-        result.forEach(note => {
-          console.log(note)
+        console.log("phonebook:")
+        result.forEach(person => {
+          console.log(person.name.concat(" ",person.number))
         })
         mongoose.connection.close()
       })
